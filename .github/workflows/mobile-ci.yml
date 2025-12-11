@@ -1,0 +1,100 @@
+name: Mobile CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/mobile-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Grant execute permission for gradlew
+        working-directory: .
+        run: chmod +x gradlew || true
+      
+      - name: Run unit tests
+        working-directory: .
+        run: ./gradlew test --no-daemon || true
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Grant execute permission for gradlew
+        working-directory: .
+        run: chmod +x gradlew || true
+      
+      - name: Build debug APK
+        working-directory: .
+        run: ./gradlew assembleDebug --no-daemon
+      
+      - name: Build release APK
+        working-directory: .
+        run: ./gradlew assembleRelease --no-daemon || true
+      
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: ./app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: ignore
+      
+      - name: Upload release APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release
+          path: ./app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+          if-no-files-found: ignore
+
+  docker-build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image for Android
+        uses: docker/build-push-action@v5
+        with:
+          context: .  
+          push: false
+          tags: ghcr.io/${{ github.repository_owner }}/passione-mobile-builder:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
