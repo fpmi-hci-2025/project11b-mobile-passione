@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Passione" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@android:color/holo_red_dark</item>
-        <item name="colorPrimaryDark">@android:color/holo_red_dark</item>
-        <item name="colorAccent">@android:color/holo_red_light</item>
+    <style name="Theme.Passione" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">#C41E3A</item>
+        <item name="colorPrimaryVariant">#A01830</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSecondary">#C41E3A</item>
+        <item name="colorSecondaryVariant">#A01830</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+        <item name="android:statusBarColor">#C41E3A</item>
+        <item name="android:windowBackground">#FFF5F5</item>
     </style>
 </resources>
-
